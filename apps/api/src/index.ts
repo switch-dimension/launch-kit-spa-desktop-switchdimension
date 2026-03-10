@@ -3,12 +3,14 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { cors } from 'hono/cors';
 import { healthRoute } from './routes/health.js';
+import { todosRoute } from './routes/todos.js';
 import { usersRoute } from './routes/users.js';
 
 const app = new Hono();
 
 app.use('/api/*', cors());
 app.route('/api', healthRoute);
+app.route('/api', todosRoute);
 app.route('/api', usersRoute);
 
 export type AppType = typeof app;

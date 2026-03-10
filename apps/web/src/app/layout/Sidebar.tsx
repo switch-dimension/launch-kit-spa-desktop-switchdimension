@@ -1,9 +1,10 @@
-import { Home, Settings } from 'lucide-react';
+import { Home, ListTodo, Settings } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/', label: 'Home', icon: Home },
+  { to: '/todos', label: 'Todos', icon: ListTodo },
   { to: '/settings', label: 'Settings', icon: Settings },
 ] as const;
 
