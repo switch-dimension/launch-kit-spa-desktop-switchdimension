@@ -10,6 +10,7 @@ Everything you need to ship a full-stack single-page app and optional desktop bu
 - **Styling:** Tailwind CSS v4
 - **Routing:** React Router v7 (SPA)
 - **Backend:** Hono (Node runtime; portable to Cloudflare Workers, Deno, Bun)
+- **Database:** PostgreSQL with Drizzle ORM
 - **Desktop (optional):** Tauri v2
 - **Monorepo:** npm workspaces (`apps/web` + `apps/api`)
 
@@ -17,6 +18,7 @@ Everything you need to ship a full-stack single-page app and optional desktop bu
 
 - ✅ **React 19 + Vite 7** — Fast SPA with HMR and simple build pipeline
 - ✅ **Hono API** — Type-safe backend with RPC-style types flowing to the frontend
+- ✅ **Drizzle + PostgreSQL** — Type-safe ORM with migrations and Drizzle Studio
 - ✅ **Tailwind CSS v4** — Utility-first styling with a single config
 - ✅ **shadcn/ui + Lucide** — Button, theme variables, `cn()` utility; add more with `npx shadcn@latest add <name>`
 - ✅ **Sidebar layout** — Ready-made app shell with nav (Home, Settings) and main content area
@@ -31,6 +33,7 @@ Before you begin, make sure you have the following installed:
 
 - **Node.js** (version 18 or higher; 20+ recommended) — [Download here](https://nodejs.org/)
 - **npm** (comes with Node.js)
+- **PostgreSQL** (for the API database) — [Download here](https://www.postgresql.org/download/) or use a hosted service (Neon, Supabase, Railway, etc.)
 - **Rust** (only if you use Tauri) — [Install guide](https://tauri.app/start/install)
 
 To check your versions:
@@ -55,18 +58,34 @@ cd my-app
 npm install
 ```
 
-### 3. Run the app
+### 3. Set up environment and database
+
+Copy the example env file and set your PostgreSQL connection string:
+
+```bash
+cp .env.example .env
+# Edit .env and set DATABASE_URL=postgresql://user:password@localhost:5432/your_db
+```
+
+From the API package, run migrations (or use `db:push` for prototyping):
+
+```bash
+npm run db:push --workspace=@launch-kit-spa-desktop-switchdimension/api
+# Or: npm run db:migrate --workspace=@launch-kit-spa-desktop-switchdimension/api
+```
+
+### 4. Run the app
 
 ```bash
 npm run dev
 ```
 
 - **Web app:** [http://localhost:5167](http://localhost:5167)
-- **API:** [http://localhost:3834](http://localhost:3834) (e.g. [http://localhost:3834/api/health](http://localhost:3834/api/health))
+- **API:** [http://localhost:3834](http://localhost:3834) (e.g. [http://localhost:3834/api/health](http://localhost:3834/api/health), [http://localhost:3834/api/users](http://localhost:3834/api/users))
 
 Open the web app URL in your browser. The frontend proxies `/api` to the API in development, so you don’t need CORS.
 
-### 4. (Optional) Run the desktop app
+### 5. (Optional) Run the desktop app
 
 With Rust installed:
 
@@ -87,6 +106,10 @@ Tauri starts the web app and opens a native window. Build a production desktop b
 | `npm run lint` | Lints the frontend. |
 | `npm run tauri` | Starts the Tauri dev window (loads the app from 5167). |
 | `npm run tauri:build` | Builds the desktop app. |
+| `npm run db:generate -w @launch-kit-spa-desktop-switchdimension/api` | Generates Drizzle migrations from schema. |
+| `npm run db:migrate -w @launch-kit-spa-desktop-switchdimension/api` | Runs Drizzle migrations. |
+| `npm run db:push -w @launch-kit-spa-desktop-switchdimension/api` | Pushes schema to DB (prototyping). |
+| `npm run db:studio -w @launch-kit-spa-desktop-switchdimension/api` | Opens Drizzle Studio. |
 
 ## Project Structure
 
@@ -102,10 +125,11 @@ Tauri starts the web app and opens a native window. Build a production desktop b
 │   │   └── ...
 │   └── api/                 # Hono API
 │       ├── src/
-│       │   ├── routes/      # Route modules (e.g. health)
-│       │   ├── middleware/
+│       │   ├── routes/      # Route modules (e.g. health, users)
 │       │   └── lib/
-│       └── ...
+│       │       └── db/      # Drizzle schema and client
+│       ├── drizzle/        # Generated migrations
+│       └── drizzle.config.ts
 ├── src-tauri/               # Tauri desktop app (optional)
 ├── package.json             # Workspaces + root scripts
 └── tsconfig.base.json
@@ -134,6 +158,7 @@ Deploy `apps/web/dist` to any static host or CDN, and run the API (e.g. `node di
 | **Styling** | Tailwind CSS v4 | Utility-first, quick to refactor; one config for the whole UI. |
 | **Routing** | React Router v7 | SPA routing with a simple, stable API. |
 | **API** | Hono | Small, fast, type-safe; runs on Node now and can move to Cloudflare Workers, Deno, or Bun with a different adapter. |
+| **Database** | Drizzle + PostgreSQL | Type-safe schema and queries; migrations via Drizzle Kit; works with any Postgres (local, Neon, Supabase, etc.). |
 | **Types** | Hono RPC | The API exports its route types; the frontend gets a typed `api` client with no codegen. |
 | **Desktop** | Tauri v2 | Same HTML/JS/CSS as the web app; small binaries and system access when you need it. |
 | **UI components** | shadcn/ui | Copy-paste components (Radix primitives + Tailwind); theme via CSS variables. |
@@ -182,6 +207,16 @@ const data = await res.json(); // { status: 'ok' } — typed
 
 Add routes in `apps/api/src/routes/` and mount them in `apps/api/src/index.ts`; the client types update automatically.
 
+## Database (Drizzle + PostgreSQL)
+
+The API uses **Drizzle ORM** with PostgreSQL. Schema lives in `apps/api/src/lib/db/schema.ts`; the client is in `apps/api/src/lib/db/index.ts`.
+
+- **Env:** Set `DATABASE_URL` in `.env` (see `.env.example`).
+- **Schema:** Edit `apps/api/src/lib/db/schema.ts` and add tables with `pgTable`, `serial`, `text`, `timestamp`, etc.
+- **Migrations:** Run `npm run db:generate -w @launch-kit-spa-desktop-switchdimension/api` to generate SQL, then `npm run db:migrate` to apply. For quick prototyping, use `npm run db:push`.
+- **Studio:** Run `npm run db:studio -w @launch-kit-spa-desktop-switchdimension/api` to open Drizzle Studio and inspect or edit data.
+- **In routes:** Import `db` from `../lib/db/index.js` and use `db.select()`, `db.insert()`, etc. Example: `GET /api/users` in `apps/api/src/routes/users.ts`.
+
 ## Desktop app (Tauri)
 
 The same React app runs in a Tauri window. No separate “desktop” UI. Config lives in `src-tauri/tauri.conf.json` (dev URL, build commands, icons). You need Rust installed to use Tauri.
@@ -193,6 +228,7 @@ The same React app runs in a Tauri window. No separate “desktop” UI. Config 
    - `package.json` (name)
    - `apps/web/index.html` (title)
    - `src-tauri/tauri.conf.json` (productName, identifier, window title)
+   - Set `DATABASE_URL` in `.env` for your database.
 3. **Customize** the sidebar in `apps/web/src/app/layout/Sidebar.tsx` (nav items, branding).
 4. **Add routes** in `apps/web/src/app/routes.tsx` and `apps/api/src/routes/`, and use the shared `api` client in the UI.
 5. **Optionally remove Tauri** if you only need web: delete `src-tauri/`, drop `@tauri-apps/api` from the web app, and remove the `tauri` / `tauri:build` scripts from the root `package.json`.
@@ -224,6 +260,11 @@ If you change the API port, update the proxy in `apps/web/vite.config.ts` and (f
 - Ensure `npm install` has been run from the repo root so the `@launch-kit-spa-desktop-switchdimension/api` workspace is linked.
 - The API package exposes `main` and `types` in `apps/api/package.json` pointing at `./src/index.ts`.
 
+**API fails to start or "DATABASE_URL is required"**
+
+- Copy `.env.example` to `.env` and set `DATABASE_URL` to a valid PostgreSQL connection string (e.g. `postgresql://user:password@localhost:5432/dbname`).
+- Ensure the database exists and migrations have been run (`npm run db:push` or `npm run db:migrate` from the API workspace).
+
 **Tauri dev/build fails**
 
 - Install Rust: [tauri.app/start/install](https://tauri.app/start/install).
@@ -234,6 +275,7 @@ If you change the API port, update the proxy in `apps/web/vite.config.ts` and (f
 - [Vite](https://vite.dev/)
 - [React](https://react.dev/)
 - [Hono](https://hono.dev/)
+- [Drizzle ORM](https://orm.drizzle.team/)
 - [Tailwind CSS v4](https://tailwindcss.com/)
 - [shadcn/ui](https://ui.shadcn.com/)
 - [Tauri](https://tauri.app/)
