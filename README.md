@@ -90,9 +90,20 @@ npm run db:push --workspace=@launch-kit-spa-desktop-switchdimension/api
 The app uses [Clerk](https://clerk.com) for authentication. Without keys the app shows a "Clerk not configured" screen with setup instructions.
 
 1. Create a free account at [clerk.com](https://clerk.com) and create an application. When prompted to choose a framework, select **React**.
-2. In the Clerk Dashboard, go to **API Keys** and copy:
-   - **Publishable Key** (starts with `pk_test_`) → set `VITE_CLERK_PUBLISHABLE_KEY` in `.env`
-   - **Secret Key** (starts with `sk_test_`) → set `CLERK_SECRET_KEY` in `.env`
+2. In the Clerk Dashboard, go to **API Keys**. The dashboard will show keys using Next.js naming conventions:
+   ```
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+   CLERK_SECRET_KEY=sk_test_...
+   ```
+   **This project uses Vite, not Next.js**, so the variable names are different. Copy the key **values** and set them in `.env` using the names below:
+
+   | Clerk Dashboard shows | Set in `.env` as | Used by |
+   |---|---|---|
+   | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...` | `VITE_CLERK_PUBLISHABLE_KEY=pk_test_...` | Vite frontend |
+   | *(same publishable key value)* | `CLERK_PUBLISHABLE_KEY=pk_test_...` | Hono API (`@hono/clerk-auth`) |
+   | `CLERK_SECRET_KEY=sk_test_...` | `CLERK_SECRET_KEY=sk_test_...` | Hono API (JWT verification) |
+
+   The publishable key appears twice with different prefixes: `VITE_` is required for Vite to expose it to the browser, and the unprefixed `CLERK_PUBLISHABLE_KEY` is what the API middleware expects. Use the same `pk_test_...` value for both.
 3. The **Publishable Key** is all you need to get sign-in and sign-up working. The **Secret Key** is needed for the API to verify JWTs (protect `/api/todos`, `/api/users`, etc.).
 4. If you can't see the Secret Key, look for a **"Reveal"** or **"Show"** button next to it on the API Keys page. Only account **Admins** can reveal it.
 5. Ensure your Clerk application's allowed redirect URLs include `http://localhost:5167` (and your production URL when deploying).
@@ -226,9 +237,10 @@ The app ships with Clerk wired end-to-end:
 | Variable | Where it's used | Required |
 |----------|----------------|----------|
 | `VITE_CLERK_PUBLISHABLE_KEY` | Frontend (Vite exposes it to the browser) | Yes — app won't load without it |
+| `CLERK_PUBLISHABLE_KEY` | API (`@hono/clerk-auth` middleware) | Yes — API fails silently without it |
 | `CLERK_SECRET_KEY` | API (JWT verification) | Yes — API returns 401 without it |
 
-Both go in the root `.env` file.
+All three go in the root `.env` file. `VITE_CLERK_PUBLISHABLE_KEY` and `CLERK_PUBLISHABLE_KEY` use the same `pk_test_...` value.
 
 ### What happens without keys
 
@@ -281,7 +293,7 @@ The same React app runs in a Tauri window. No separate “desktop” UI. Config 
    - `apps/web/index.html` (title)
    - `src-tauri/tauri.conf.json` (productName, identifier, window title)
    - Set `DATABASE_URL` in `.env` for your database.
-3. **Set up Clerk**: Create a Clerk application and add `VITE_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` to `.env`.
+3. **Set up Clerk**: Create a Clerk application and add `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_PUBLISHABLE_KEY`, and `CLERK_SECRET_KEY` to `.env` (see [Set up Clerk](#3b-set-up-clerk-authentication) for the key name mapping).
 4. **Customize** the sidebar in `apps/web/src/app/layout/Sidebar.tsx` (nav items, branding).
 5. **Add routes** in `apps/web/src/app/routes.tsx` and `apps/api/src/routes/`, and use the shared `api` client (or `useApi()` for authenticated calls) in the UI.
 6. **Optionally remove Tauri** if you only need web: delete `src-tauri/`, drop `@tauri-apps/api` from the web app, and remove the `tauri` / `tauri:build` scripts from the root `package.json`.
@@ -325,10 +337,12 @@ If you change the API port, update the proxy in `apps/web/vite.config.ts` and (f
 - After editing `.env`, **restart the dev server** (Ctrl+C, then `npm run dev`). Vite only reads env files at startup.
 - Open the browser console (F12 → Console) and look for the `[Clerk config]` log to see what value the app received.
 
-**API returns 401 on all requests**
+**API returns 401 on all requests or fails silently**
 
-- Set `CLERK_SECRET_KEY` in `.env` to your Clerk secret key (starts with `sk_test_`). Find it on the Clerk Dashboard → API Keys page (click "Reveal" or "Show" next to the secret key; only Admins can see it).
-- Restart the dev server after adding it.
+- Make sure **all three** Clerk variables are set in `.env`: `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_PUBLISHABLE_KEY`, and `CLERK_SECRET_KEY`. The Clerk dashboard shows `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — copy that value into both `VITE_CLERK_PUBLISHABLE_KEY` and `CLERK_PUBLISHABLE_KEY`.
+- `CLERK_PUBLISHABLE_KEY` (no prefix) is required by `@hono/clerk-auth`. If it's missing the API will throw "Missing Clerk Publishable key" on every request.
+- `CLERK_SECRET_KEY` starts with `sk_test_`. Find it on the Clerk Dashboard → API Keys page (click "Reveal" or "Show"; only Admins can see it).
+- Restart the dev server after editing `.env`.
 
 **Tauri dev/build fails**
 
