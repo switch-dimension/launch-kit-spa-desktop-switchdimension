@@ -6,7 +6,8 @@
     "noEmit": false,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["node"]
+    "types": ["node"],
+    "skipLibCheck": true
   },
   "include": ["src"]
 }
