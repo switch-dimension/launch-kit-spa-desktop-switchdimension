@@ -1,4 +1,4 @@
-# 🚀 SPA Launch Kit (Molten)
+# 🚀 Launch Kit SPA Desktop SwitchDimension
 
 Everything you need to ship a full-stack single-page app and optional desktop build. A modern starter for React + Vite + Hono with shadcn/ui, designed for AI-assisted refactors and deploy-anywhere flexibility.
 
@@ -167,7 +167,7 @@ The API exports its type; the frontend gets a typed client with no codegen:
 ```ts
 // apps/web/src/shared/lib/api-client.ts
 import { hc } from 'hono/client';
-import type { AppType } from '@molten/api';
+import type { AppType } from '@launch-kit-spa-desktop-switchdimension/api';
 
 const apiBase = import.meta.env.VITE_API_URL ?? '';
 export const api = hc<AppType>(apiBase);
@@ -189,7 +189,7 @@ The same React app runs in a Tauri window. No separate “desktop” UI. Config 
 ## Using this as a starter for new apps
 
 1. **Clone or fork** this repo and rename it (e.g. `my-product`).
-2. **Search and replace** “Molten OS” / “molten” in:
+2. **Search and replace** any remaining project-specific names in:
    - `package.json` (name)
    - `apps/web/index.html` (title)
    - `src-tauri/tauri.conf.json` (productName, identifier, window title)
@@ -221,13 +221,13 @@ If you change the API port, update the proxy in `apps/web/vite.config.ts` and (f
 
 **API types not resolving in the frontend**
 
-- Ensure `npm install` has been run from the repo root so the `@molten/api` workspace is linked.
+- Ensure `npm install` has been run from the repo root so the `@launch-kit-spa-desktop-switchdimension/api` workspace is linked.
 - The API package exposes `main` and `types` in `apps/api/package.json` pointing at `./src/index.ts`.
 
 **Tauri dev/build fails**
 
 - Install Rust: [tauri.app/start/install](https://tauri.app/start/install).
-- Ensure the web app builds: `npm run build --workspace=@molten/web`.
+- Ensure the web app builds: `npm run build --workspace=@launch-kit-spa-desktop-switchdimension/web`.
 
 ## Additional resources
 

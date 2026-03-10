@@ -1,5 +1,5 @@
 {
-  "name": "molten-os-0.2",
+  "name": "launch-kit-spa-desktop-switchdimension",
   "private": true,
   "version": "0.0.0",
   "workspaces": [
@@ -7,10 +7,10 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm:dev:web\" \"npm:dev:api\"",
-    "dev:web": "npm run dev --workspace @molten/web",
-    "dev:api": "npm run dev --workspace @molten/api",
-    "build": "npm run build --workspace @molten/web && npm run build --workspace @molten/api",
-    "lint": "npm run lint --workspace @molten/web",
+    "dev:web": "npm run dev --workspace @launch-kit-spa-desktop-switchdimension/web",
+    "dev:api": "npm run dev --workspace @launch-kit-spa-desktop-switchdimension/api",
+    "build": "npm run build --workspace @launch-kit-spa-desktop-switchdimension/web && npm run build --workspace @launch-kit-spa-desktop-switchdimension/api",
+    "lint": "npm run lint --workspace @launch-kit-spa-desktop-switchdimension/web",
     "tauri": "npx @tauri-apps/cli dev",
     "tauri:build": "npx @tauri-apps/cli build"
   },

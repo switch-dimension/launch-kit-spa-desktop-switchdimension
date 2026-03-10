@@ -1,18 +1,18 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Molten OS",
+  "productName": "Launch Kit SPA Desktop SwitchDimension",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.switchdimension.launch-kit-spa-desktop",
   "build": {
     "frontendDist": "../apps/web/dist",
     "devUrl": "http://localhost:5167",
-    "beforeDevCommand": "npm run dev --workspace=@molten/web",
-    "beforeBuildCommand": "npm run build --workspace=@molten/web"
+    "beforeDevCommand": "npm run dev --workspace=@launch-kit-spa-desktop-switchdimension/web",
+    "beforeBuildCommand": "npm run build --workspace=@launch-kit-spa-desktop-switchdimension/web"
   },
   "app": {
     "windows": [
       {
-        "title": "Molten OS",
+        "title": "Launch Kit SPA Desktop SwitchDimension",
         "width": 800,
         "height": 600,
         "resizable": true,

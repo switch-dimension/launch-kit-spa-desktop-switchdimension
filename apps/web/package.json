@@ -1,5 +1,5 @@
 {
-  "name": "@molten/web",
+  "name": "@launch-kit-spa-desktop-switchdimension/web",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@molten/api": "*",
+    "@launch-kit-spa-desktop-switchdimension/api": "*",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.2.1",
     "@tauri-apps/api": "^2.10.1",
