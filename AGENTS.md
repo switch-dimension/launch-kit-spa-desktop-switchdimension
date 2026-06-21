@@ -26,5 +26,7 @@ The root `.env` is gitignored; create it from `.env.example` if missing.
 
 ### Clerk auth is required for the API and frontend to function
 - `clerkMiddleware()` is applied to all `/api/*` routes, so with no/invalid keys EVERY API request (including `/api/health`) returns `500 "Publishable key not valid."`, and the web app renders a full-page "Clerk not configured" screen instead of the app.
-- Real keys are needed to exercise the app end-to-end (sign up / sign in / todos). Set all three in the root `.env` (same `pk_test_...` value for the first two): `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`. These are external secrets — provide them via Cursor Secrets.
-- The Postgres/Drizzle data layer itself works independently of Clerk (verified by inserting + reading a `todos` row through the app's own `db`/`schema` modules).
+- Set all three in the root `.env` (same `pk_test_...` value for the first two): `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`. Provide them via Cursor Secrets or the Clerk Dashboard.
+- **Clerk CLI** (`npx clerk@latest`): after `clerk auth login`, run `clerk env pull` to write framework-detected env vars into `.env`, or `clerk init` to create/link an app. Requires interactive OAuth login — not usable headlessly without prior auth.
+- **UI sign-up in dev** may require email verification before sign-in works. For automated E2E in this VM, create a pre-verified user via the Backend API (`POST https://api.clerk.com/v1/users` with `CLERK_SECRET_KEY`), then sign in via UI or a sign-in token.
+- After updating `.env` or secrets, restart dev: `set -a; source .env; set +a; npm run dev`.
