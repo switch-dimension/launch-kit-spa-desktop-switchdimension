@@ -1,13 +1,7 @@
 import { Hono } from 'hono';
-import { getAuth } from '@hono/clerk-auth';
-import { db } from '../lib/db/index.js';
-import { users } from '../lib/db/schema.js';
+import { requireAuth, type AuthEnv } from '../middleware/auth.js';
 
-export const usersRoute = new Hono().get('/users', async (c) => {
-  const auth = getAuth(c);
-  if (!auth?.userId) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
-  const result = await db.select().from(users);
-  return c.json(result);
-});
+/** Returns the signed-in user's Clerk ID. Handy for checking auth end-to-end. */
+export const usersRoute = new Hono<AuthEnv>().get('/me', requireAuth, (c) =>
+  c.json({ userId: c.var.userId })
+);

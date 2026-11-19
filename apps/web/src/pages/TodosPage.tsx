@@ -1,13 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { InferResponseType } from 'hono/client';
+import { Trash2 } from 'lucide-react';
 import { useApi } from '@/shared/lib/use-api';
+import { api as publicApi } from '@/shared/lib/api-client';
 import { Button } from '@/components/ui/button';
 
-type Todo = {
-  id: number;
-  title: string;
-  completed: boolean;
-  createdAt: string | null;
-};
+/** Inferred from the API route — no hand-written types to keep in sync. */
+type Todo = InferResponseType<typeof publicApi.api.todos.$get, 200>[number];
+
+function errorMessage(res: Response): string {
+  return res.status === 401
+    ? 'The API rejected your session. Check CLERK_SECRET_KEY in .env and restart the dev server.'
+    : `Request failed (${res.status}).`;
+}
 
 export function TodosPage() {
   const api = useApi();
@@ -15,47 +20,67 @@ export function TodosPage() {
   const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-
-  const fetchTodos = useCallback(async () => {
-    // @ts-expect-error - useApi() client type lost under tsc -b; runtime shape is correct
-    const res = await api.api.todos.$get();
-    if (res.ok) {
-      const data = await res.json();
-      setTodos(data);
-    }
-    setLoading(false);
-  }, [api]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchTodos();
-  }, [api, fetchTodos]);
+    let cancelled = false;
+    api.api.todos
+      .$get()
+      .then(async (res) => {
+        if (cancelled) return;
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) setTodos(data);
+        } else {
+          setError(errorMessage(res));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setError('Could not reach the API. Is it running on port 3834?');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const t = title.trim();
     if (!t || submitting) return;
     setSubmitting(true);
-    // @ts-expect-error - useApi() client type lost under tsc -b; runtime shape is correct
     const res = await api.api.todos.$post({ json: { title: t } });
     if (res.ok) {
       const created = await res.json();
       setTodos((prev) => [created, ...prev]);
       setTitle('');
+    } else {
+      setError(errorMessage(res));
     }
     setSubmitting(false);
   };
 
   const handleToggle = async (id: number, completed: boolean) => {
-    // @ts-expect-error - useApi() client type lost under tsc -b; runtime shape is correct
     const res = await api.api.todos[':id'].$patch({
       param: { id: String(id) },
       json: { completed: !completed },
     });
     if (res.ok) {
       const updated = await res.json();
-      setTodos((prev) =>
-        prev.map((todo) => (todo.id === id ? updated : todo))
-      );
+      setTodos((prev) => prev.map((todo) => (todo.id === id ? updated : todo)));
+    } else {
+      setError(errorMessage(res));
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    const res = await api.api.todos[':id'].$delete({ param: { id: String(id) } });
+    if (res.ok) {
+      setTodos((prev) => prev.filter((todo) => todo.id !== id));
+    } else {
+      setError(errorMessage(res));
     }
   };
 
@@ -72,8 +97,14 @@ export function TodosPage() {
     <div>
       <h1 className="text-2xl font-semibold text-zinc-100">Todos</h1>
       <p className="mt-1 text-zinc-400">
-        Minimal todo app — database connected via Drizzle + Neon.
+        Minimal todo app — each user sees only their own todos (Drizzle + PostgreSQL).
       </p>
+
+      {error && (
+        <p role="alert" className="mt-4 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-red-300">
+          {error}
+        </p>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 flex gap-2">
         <input
@@ -81,6 +112,7 @@ export function TodosPage() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="What needs doing?"
+          maxLength={500}
           className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-ring"
           disabled={submitting}
         />
@@ -103,16 +135,23 @@ export function TodosPage() {
                 checked={todo.completed}
                 onChange={() => handleToggle(todo.id, todo.completed)}
                 className="size-4 rounded border-input"
+                aria-label={`Mark "${todo.title}" as ${todo.completed ? 'not done' : 'done'}`}
               />
               <span
                 className={
-                  todo.completed
-                    ? 'flex-1 text-zinc-500 line-through'
-                    : 'flex-1 text-zinc-100'
+                  todo.completed ? 'flex-1 text-zinc-500 line-through' : 'flex-1 text-zinc-100'
                 }
               >
                 {todo.title}
               </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleDelete(todo.id)}
+                aria-label={`Delete "${todo.title}"`}
+              >
+                <Trash2 className="size-4" />
+              </Button>
             </li>
           ))
         )}
