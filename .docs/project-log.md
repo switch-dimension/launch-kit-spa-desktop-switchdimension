@@ -1,5 +1,23 @@
 # Project Log
 
+## [2026-11-19] — Dependency refresh and security hardening
+
+### Summary
+Upgraded every dependency to current releases, fixed several security issues, and smoothed new-user setup. See CHANGELOG 0.2.0 for the full list. Highlights: todos are scoped per user (migration 0002), `/api/users` (leaked all emails) replaced with `/api/me`, `@hono/clerk-auth` replaced with a `requireAuth` middleware on `@clerk/backend` v3, CORS locked to `ALLOWED_ORIGINS`, Tauri CSP added, Docker Postgres via `npm run db:up`.
+
+### Current State
+[x] Working
+
+### Next Steps
+1. Verify the full sign-in flow in a browser with real Clerk keys (API auth was verified with locally signed tokens).
+2. Verify the Tauri CSP in a real desktop window, especially with a Clerk production instance.
+3. Optionally add Clerk webhooks to populate the (currently unused) `users` table.
+
+### Context
+- Node 22.12+ required (Vite 8). TypeScript is pinned to 6.0 because typescript-eslint doesn't support TS 7 yet. React Router stays on v7 (v8 needs Node 22.22+).
+- Routes must stay chained in `apps/api/src/index.ts` for RPC types to flow to the web app.
+- `npm audit` is clean. The root `overrides` entry forces `@esbuild-kit/core-utils` (pulled in by drizzle-kit) onto esbuild 0.25. Drop it once drizzle-kit stops depending on `@esbuild-kit`.
+
 ## [2026-03-10] — Clerk authentication added to starter kit
 
 ### Summary

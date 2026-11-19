@@ -6,15 +6,32 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm:dev:web\" \"npm:dev:api\"",
-    "dev:web": "npm run dev --workspace @launch-kit-spa-desktop-switchdimension/web",
-    "dev:api": "npm run dev --workspace @launch-kit-spa-desktop-switchdimension/api",
-    "build": "npm run build --workspace @launch-kit-spa-desktop-switchdimension/web && npm run build --workspace @launch-kit-spa-desktop-switchdimension/api",
-    "lint": "npm run lint --workspace @launch-kit-spa-desktop-switchdimension/web",
-    "tauri": "npx @tauri-apps/cli dev",
-    "tauri:build": "npx @tauri-apps/cli build"
+    "dev": "concurrently -n web,api -c cyan,magenta \"npm:dev:web\" \"npm:dev:api\"",
+    "dev:web": "npm run dev -w @launch-kit-spa-desktop-switchdimension/web",
+    "dev:api": "npm run dev -w @launch-kit-spa-desktop-switchdimension/api",
+    "build": "npm run build -w @launch-kit-spa-desktop-switchdimension/web && npm run build -w @launch-kit-spa-desktop-switchdimension/api",
+    "start": "npm run start -w @launch-kit-spa-desktop-switchdimension/api",
+    "lint": "npm run lint -w @launch-kit-spa-desktop-switchdimension/web",
+    "typecheck": "npm run typecheck -w @launch-kit-spa-desktop-switchdimension/api && npm run typecheck -w @launch-kit-spa-desktop-switchdimension/web",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:generate": "npm run db:generate -w @launch-kit-spa-desktop-switchdimension/api",
+    "db:migrate": "npm run db:migrate -w @launch-kit-spa-desktop-switchdimension/api",
+    "db:push": "npm run db:push -w @launch-kit-spa-desktop-switchdimension/api",
+    "db:studio": "npm run db:studio -w @launch-kit-spa-desktop-switchdimension/api",
+    "tauri": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0"
+    "@tauri-apps/cli": "^2.12.6",
+    "concurrently": "^10.0.7"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.12"
+    }
   }
 }

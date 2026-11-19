@@ -1,20 +1,11 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "useDefineForClassFields": true,
+    "target": "ES2023",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
-    "jsx": "react-jsx",
-    "allowJs": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "types": ["vite/client"],
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["apps/web/src/shared/*"],
-      "@features/*": ["apps/web/src/features/*"]
-    }
+    "skipLibCheck": true
   }
 }

@@ -1,5 +1,6 @@
 import {
   boolean,
+  index,
   pgTable,
   serial,
   text,
@@ -12,9 +13,15 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const todos = pgTable('todos', {
-  id: serial('id').primaryKey(),
-  title: text('title').notNull(),
-  completed: boolean('completed').notNull().default(false),
-  createdAt: timestamp('created_at').defaultNow(),
-});
+export const todos = pgTable(
+  'todos',
+  {
+    id: serial('id').primaryKey(),
+    /** Clerk user ID of the owner. */
+    userId: text('user_id').notNull(),
+    title: text('title').notNull(),
+    completed: boolean('completed').notNull().default(false),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (t) => [index('todos_user_id_idx').on(t.userId)]
+);

@@ -3,11 +3,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "noEmit": false,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "types": ["node"],
-    "skipLibCheck": true
+    "lib": ["ES2023"],
+    "types": ["node"]
   },
   "include": ["src"]
 }

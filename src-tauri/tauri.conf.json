@@ -12,15 +12,28 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Launch Kit SPA Desktop SwitchDimension",
-        "width": 800,
-        "height": 600,
+        "width": 1100,
+        "height": 750,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "minWidth": 640,
+        "minHeight": 480
       }
     ],
     "security": {
-      "csp": null
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+        "connect-src": "'self' ipc: http://ipc.localhost http://localhost:3834 https://*.clerk.accounts.dev https://clerk-telemetry.com",
+        "img-src": "'self' data: https://img.clerk.com",
+        "style-src": "'self' 'unsafe-inline'",
+        "font-src": "'self' data:",
+        "worker-src": "'self' blob:",
+        "frame-src": "https://challenges.cloudflare.com"
+      },
+      "devCsp": null
     }
   },
   "bundle": {

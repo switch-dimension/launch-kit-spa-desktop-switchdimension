@@ -15,6 +15,13 @@
       "when": 1773142867744,
       "tag": "0001_add_todos",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795118410187,
+      "tag": "0002_todos_user_id",
+      "breakpoints": true
     }
   ]
 }
